@@ -39,11 +39,11 @@ function deg_to_pixels(degrees, viewing_distance_cm, monitor_width_cm, screen_wi
     return cm_to_pixels(cm, monitor_width_cm, screen_width_px);
 }
 
-// Screen dimensions
+// Screen dimensions - use actual screen, not canvas
 const screen_width = window.screen.width;
 const screen_height = window.screen.height;
-const canvas_width = Math.min(screen_width, 1200);
-const canvas_height = Math.min(screen_height, 800);
+const canvas_width = screen_width;
+const canvas_height = screen_height;
 
 // Trial conditions (matching your CSV structure)
 const conditions = [
@@ -55,9 +55,9 @@ const conditions = [
     {cueCondition: 'uncued', lineCondition: 'center'}
 ];
 
-// Generate full trial list 
+// Generate full trial list (repeat to match your 100 trials)
 const trial_conditions = [];
-for (let i = 0; i < 17; i++) {  // 6 * 17 = 102 trials 
+for (let i = 0; i < 17; i++) {  // 6 * 17 = 102 trials (close to 100)
     conditions.forEach(cond => {
         trial_conditions.push({...cond});
     });
@@ -136,12 +136,12 @@ function draw_trial_stimuli(canvas, context, phase, progress = 0) {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
-    // Convert visual angles to pixels
-    const circle_radius = deg_to_pixels(2, params.viewing_distance_cm, params.monitor_width_cm, canvas.width);
-    const cue_radius = deg_to_pixels(4, params.viewing_distance_cm, params.monitor_width_cm, canvas.width);
-    const circle_offset_x = deg_to_pixels(4.0, params.viewing_distance_cm, params.monitor_width_cm, canvas.width);
-    const circle_offset_y = deg_to_pixels(-1.1, params.viewing_distance_cm, params.monitor_width_cm, canvas.width);
-    const fixation_size = deg_to_pixels(0.3, params.viewing_distance_cm, params.monitor_width_cm, canvas.width);
+    // Convert visual angles to pixels using actual screen width
+    const circle_radius = deg_to_pixels(0.5, params.viewing_distance_cm, params.monitor_width_cm, screen_width);
+    const cue_radius = deg_to_pixels(1.0, params.viewing_distance_cm, params.monitor_width_cm, screen_width);
+    const circle_offset_x = deg_to_pixels(4.0, params.viewing_distance_cm, params.monitor_width_cm, screen_width);
+    const circle_offset_y = deg_to_pixels(1.1, params.viewing_distance_cm, params.monitor_width_cm, screen_width);
+    const fixation_size = deg_to_pixels(0.3, params.viewing_distance_cm, params.monitor_width_cm, screen_width);
     
     // Clear canvas
     context.fillStyle = 'black';
@@ -162,14 +162,14 @@ function draw_trial_stimuli(canvas, context, phase, progress = 0) {
     context.strokeStyle = 'white';
     context.lineWidth = 2;
     
-    // Left circle
+    // Left circle - ABOVE fixation (subtract Y because canvas Y goes down)
     context.beginPath();
-    context.arc(centerX - circle_offset_x, centerY + circle_offset_y, circle_radius, 0, 2 * Math.PI);
+    context.arc(centerX - circle_offset_x, centerY - circle_offset_y, circle_radius, 0, 2 * Math.PI);
     context.fill();
     
-    // Right circle
+    // Right circle - ABOVE fixation
     context.beginPath();
-    context.arc(centerX + circle_offset_x, centerY + circle_offset_y, circle_radius, 0, 2 * Math.PI);
+    context.arc(centerX + circle_offset_x, centerY - circle_offset_y, circle_radius, 0, 2 * Math.PI);
     context.fill();
     
     // Draw cue if in cue phase
@@ -178,13 +178,13 @@ function draw_trial_stimuli(canvas, context, phase, progress = 0) {
             centerX + circle_offset_x : centerX - circle_offset_x;
         
         context.beginPath();
-        context.arc(cue_x, centerY + circle_offset_y, cue_radius, 0, 2 * Math.PI);
+        context.arc(cue_x, centerY - circle_offset_y, cue_radius, 0, 2 * Math.PI);
         context.fill();
     }
     
     // Draw line if in line phase
     if (phase === 'line' && progress !== null) {
-        const lineY = centerY + circle_offset_y;
+        const lineY = centerY - circle_offset_y;  // Line at same height as circles
         let x_start, x_end, draw_full;
         
         const lineCondition = jsPsych.timelineVariable('lineCondition');
@@ -219,7 +219,7 @@ const trial_procedure = {
         // Fixation (1000ms)
         {
             type: jsPsychCanvasKeyboardResponse,
-            canvas_size: [canvas_width, canvas_height],
+            canvas_size: [screen_width, screen_height],
             stimulus: function(canvas) {
                 const context = canvas.getContext('2d');
                 draw_trial_stimuli(canvas, context, 'fixation');
@@ -230,7 +230,7 @@ const trial_procedure = {
         // Cue (50ms)
         {
             type: jsPsychCanvasKeyboardResponse,
-            canvas_size: [canvas_width, canvas_height],
+            canvas_size: [screen_width, screen_height],
             stimulus: function(canvas) {
                 const context = canvas.getContext('2d');
                 draw_trial_stimuli(canvas, context, 'cue');
@@ -241,7 +241,7 @@ const trial_procedure = {
         // Blank (SOA - 50ms)
         {
             type: jsPsychCanvasKeyboardResponse,
-            canvas_size: [canvas_width, canvas_height],
+            canvas_size: [screen_width, screen_height],
             stimulus: function(canvas) {
                 const context = canvas.getContext('2d');
                 draw_trial_stimuli(canvas, context, 'blank');
@@ -254,7 +254,7 @@ const trial_procedure = {
         // Line animation with response
         {
             type: jsPsychCanvasKeyboardResponse,
-            canvas_size: [canvas_width, canvas_height],
+            canvas_size: [screen_width, screen_height],
             stimulus: function(canvas) {
                 const context = canvas.getContext('2d');
                 const lineCondition = jsPsych.timelineVariable('lineCondition');
@@ -296,7 +296,7 @@ const trial_procedure = {
         // ITI blank (500ms)
         {
             type: jsPsychCanvasKeyboardResponse,
-            canvas_size: [canvas_width, canvas_height],
+            canvas_size: [screen_width, screen_height],
             stimulus: function(canvas) {
                 const context = canvas.getContext('2d');
                 context.fillStyle = 'black';
