@@ -2,7 +2,9 @@
  * Illusory Line Motion (ILM) Task for IOR Research
  * jsPsych version converted from PsychoPy
  * 
- * Timing: 1000ms fixation → 50ms cue → SOA → line animation → response
+ * Timing: 1000ms fixation → 50ms cue → 100ms blank → line animation → response
+ * Line speed: 200 deg/sec (very fast - line draws in 40ms)
+ * Response keys: Q (left→right), P (right→left)
  */
 
 // Initialize jsPsych
@@ -13,14 +15,14 @@ const jsPsych = initJsPsych({
     }
 });
 
-// Experiment parameters (configurable)
+// Experiment parameters (fixed - matching Python version)
 let params = {
     participant_id: '',
     session: '001',
-    line_speed: 4.0,  // degrees per second
+    line_speed: 200.0,  // degrees per second (very fast!)
     soa: 150,  // milliseconds
-    monitor_width_cm: 34.5,
-    viewing_distance_cm: 60
+    monitor_width_cm: 34.5,  // fixed for now
+    viewing_distance_cm: 60   // fixed for now
 };
 
 // Visual angle calculation
@@ -72,26 +74,18 @@ const timeline = [];
 // Participant info form
 const participant_info = {
     type: jsPsychSurveyHtmlForm,
-    preamble: '<h2>Illusory Line Motion Task</h2><p>Please enter your information and adjust parameters:</p>',
+    preamble: '<h2>Illusory Line Motion Task</h2><p>Please enter your information:</p>',
     html: `
         <p><label>Participant ID: <input name="participant_id" type="text" value="${Math.floor(Math.random() * 999999).toString().padStart(6, '0')}" required /></label></p>
         <p><label>Session: <input name="session" type="text" value="001" required /></label></p>
-        <p><label>Line Speed (deg/sec): <input name="line_speed" type="number" step="0.1" value="4.0" required /></label></p>
-        <p><label>Cue-Target SOA (ms): <input name="soa" type="number" value="150" required /></label></p>
-        <p><label>Monitor Width (cm): <input name="monitor_width_cm" type="number" step="0.1" value="34.5" required /></label></p>
-        <p><label>Viewing Distance (cm): <input name="viewing_distance_cm" type="number" value="60" required /></label></p>
         <p style="font-size: 12px; color: #888; margin-top: 20px;">
-            Tip: Measure your screen width and viewing distance for accurate visual angles.<br>
-            Detected screen: ${screen_width} x ${screen_height} pixels
+            Detected screen: ${screen_width} x ${screen_height} pixels<br>
+            Line speed: 200 deg/sec | SOA: 150ms
         </p>
     `,
     on_finish: function(data) {
         params.participant_id = data.response.participant_id;
         params.session = data.response.session;
-        params.line_speed = parseFloat(data.response.line_speed);
-        params.soa = parseInt(data.response.soa);
-        params.monitor_width_cm = parseFloat(data.response.monitor_width_cm);
-        params.viewing_distance_cm = parseFloat(data.response.viewing_distance_cm);
         
         // Add to all data
         jsPsych.data.addProperties({
@@ -121,12 +115,11 @@ const instructions = {
             </p>
             <div style="margin: 30px 0; padding: 20px; background: #222;">
                 <p style="font-size: 20px; margin: 10px 0;"><strong>Your Task:</strong></p>
-                <p style="font-size: 18px;">Press <strong>Z</strong> if the line appears to move from <strong>LEFT to RIGHT</strong></p>
-                <p style="font-size: 18px;">Press <strong>M</strong> if the line appears to move from <strong>RIGHT to LEFT</strong></p>
+                <p style="font-size: 18px;">Press <strong>Q</strong> if the line appears to move from <strong>LEFT to RIGHT</strong></p>
+                <p style="font-size: 18px;">Press <strong>P</strong> if the line appears to move from <strong>RIGHT to LEFT</strong></p>
             </div>
             <p style="font-size: 16px;">
-                Try to respond as quickly and accurately as possible.<br>
-                The cue may influence your perception of the line's direction.
+                Try to respond as quickly and accurately as possible.
             </p>
             <p style="font-size: 18px; margin-top: 40px;">
                 <strong>Press SPACEBAR to begin</strong>
@@ -203,9 +196,9 @@ function draw_trial_stimuli(canvas, context, phase, progress = 0) {
             x_start = centerX - circle_offset_x;
             x_end = centerX + circle_offset_x;
             draw_full = false;
-        } else {  // center
-            x_start = centerX - circle_offset_x / 2;
-            x_end = centerX + circle_offset_x / 2;
+        } else {  // center - draws full line instantly
+            x_start = centerX - circle_offset_x;
+            x_end = centerX + circle_offset_x;
             draw_full = true;
         }
         
@@ -289,7 +282,7 @@ const trial_procedure = {
                     animate();
                 }
             },
-            choices: ['z', 'm'],
+            choices: ['q', 'p'],
             trial_duration: 2000,
             data: {
                 task: 'response',
