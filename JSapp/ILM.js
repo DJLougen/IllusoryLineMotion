@@ -133,8 +133,8 @@ timeline.push(instructions);
 
 // Function to draw stimuli on canvas
 function draw_trial_stimuli(canvas, context, phase, progress = 0) {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    const centerX = canvas.width ;
+    const centerY = canvas.height;
     
     // Convert visual angles to pixels using actual screen width
     const circle_radius = deg_to_pixels(0.5, params.viewing_distance_cm, params.monitor_width_cm, screen_width);
