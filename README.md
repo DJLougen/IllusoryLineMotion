@@ -3,11 +3,17 @@
 ## Quick Start for Testing
 
 ### Prerequisites
+- download and install [VSCode](https://code.visualstudio.com/) or another code editor
+- install [Python 3.8+](https://www.python.org/downloads/)
+- download this and install [psychopy](https://www.psychopy.org/)
+- Extension: Python (by Microsoft) for VSCode 
+- Mac: Shift+Command+P or Windows : Shift+Ctrl+P→ "Python: Select Interpreter" → choose Python 3.8+ environment
 - Python 3.8+
 - PsychoPy library
 
 ### Installation
 ```bash
+#In terminal or command prompt type the following:
 # Install PsychoPy
 pip install psychopy
 
@@ -38,8 +44,8 @@ The experiment will automatically:
 - **SOA**: Time between cue and line onset (default: 150ms)
 
 ### Controls
-- **Z**: Line moving left to right
-- **M**: Line moving right to left  
+- **Q**: Line moving left to right
+- **P**: Line moving right to left  
 - **ESC**: Quit and save data
 - **SPACE**: Start experiment (on instruction screen)
 
