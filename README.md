@@ -22,7 +22,7 @@ conda install -c conda-forge psychopy
 cd path/to/ILM_task
 
 # 3. Run the experiment
-python minimalILM_fixed.py
+python minimalILM.py
 ```
 
 ### First-Time Setup
@@ -46,7 +46,7 @@ The experiment will automatically:
 ### File Structure
 ```
 ILM_task/
-├── minimalILM_fixed.py          # Main experiment script
+├── minimalILM.py          # Main experiment script
 ├── psychoPY/
 │   └── illusory_line_conditions_100.csv  # Trial conditions
 ├── data/                        # Created automatically for results
@@ -77,14 +77,14 @@ ilm_env\Scripts\activate
 pip install psychopy pandas numpy
 
 # Run experiment
-python minimalILM_fixed.py
+python minimalILM.py
 ```
 
 ---
 
 ## Experiment Design
 
-**Paradigm**: Illusory Line Motion with Inhibition of Return
+**Paradigm**: Illusory Line Motion Task
 
 **Timing**:
 1. Fixation + placeholders: 1000ms
@@ -103,8 +103,7 @@ python minimalILM_fixed.py
 ## Troubleshooting
 
 **Error: "No module named 'monitors'"**
-→ This is fixed in `minimalILM_fixed.py`
-
+→ Ensure PsychoPy is installed correctly
 **Monitor warnings on startup**
 → Normal on first run, configuration will be saved
 
