@@ -40,8 +40,8 @@ function deg_to_pixels(degrees, viewing_distance_cm, monitor_width_cm, screen_wi
 }
 
 // Screen dimensions - use actual screen, not canvas
-const screen_width = window.screen.width;
-const screen_height = window.screen.height;
+const screen_width = window.screen.innerWidth;
+const screen_height = window.screen.innerHeight;
 const canvas_width = screen_width;
 const canvas_height = screen_height;
 
@@ -133,8 +133,8 @@ timeline.push(instructions);
 
 // Function to draw stimuli on canvas
 function draw_trial_stimuli(canvas, context, phase, progress = 0) {
-    const centerX = canvas.width ;
-    const centerY = canvas.height;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
     
     // Convert visual angles to pixels using actual screen width
     const circle_radius = deg_to_pixels(0.5, params.viewing_distance_cm, params.monitor_width_cm, screen_width);
