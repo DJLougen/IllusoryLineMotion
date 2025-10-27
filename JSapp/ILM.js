@@ -55,9 +55,9 @@ const conditions = [
     {cueCondition: 'uncued', lineCondition: 'center'}
 ];
 
-// Generate full trial list (repeat to match your 100 trials)
+// Generate full trial list 
 const trial_conditions = [];
-for (let i = 0; i < 17; i++) {  // 6 * 17 = 102 trials (close to 100)
+for (let i = 0; i < 17; i++) {  // 6 * 17 = 102 trials 
     conditions.forEach(cond => {
         trial_conditions.push({...cond});
     });
