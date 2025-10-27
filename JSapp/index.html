@@ -12,13 +12,28 @@
         body {
             background-color: black;
             color: white;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
         .jspsych-content {
-            max-width: 95%;
+            max-width: 100%;
+            width: 100%;
+            margin: 0;
         }
         #jspsych-canvas-keyboard-response-canvas {
             display: block;
             margin: 0 auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .jspsych-display-element {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
