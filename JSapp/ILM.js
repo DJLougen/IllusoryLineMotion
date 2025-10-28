@@ -45,25 +45,33 @@ const screen_height = window.innerHeight;
 const canvas_width = screen_width;
 const canvas_height = screen_height;
 
-// Trial conditions (matching your CSV structure)
-const conditions = [
-    {cueCondition: 'cued', lineCondition: 'congruent'},
-    {cueCondition: 'cued', lineCondition: 'incongruent'},
-    {cueCondition: 'cued', lineCondition: 'center'},
-    {cueCondition: 'uncued', lineCondition: 'congruent'},
-    {cueCondition: 'uncued', lineCondition: 'incongruent'},
-    {cueCondition: 'uncued', lineCondition: 'center'}
-];
+// Trial conditions - will be loaded from CSV
+let trial_conditions = [];
 
-// Generate full trial list (repeat to match your 100 trials)
-const trial_conditions = [];
-for (let i = 0; i < 17; i++) {  // 6 * 17 = 102 trials (close to 100)
-    conditions.forEach(cond => {
-        trial_conditions.push({...cond});
-    });
+// Function to load and parse CSV
+async function loadConditions() {
+    try {
+        const response = await fetch('illusory_line_conditions_100.csv');
+        const text = await response.text();
+        const rows = text.trim().split('\n').slice(1); // Skip header
+        
+        trial_conditions = rows.filter(row => row.trim()).map(row => {
+            const [cueCondition, lineCondition, trial_num] = row.split(',');
+            return {
+                cueCondition: cueCondition.trim(),
+                lineCondition: lineCondition.trim(),
+                trial_num: parseInt(trial_num)
+            };
+        });
+        
+        console.log(`Loaded ${trial_conditions.length} trials from CSV`);
+        return trial_conditions;
+    } catch (error) {
+        console.error('Error loading CSV:', error);
+        alert('Error loading trial conditions. Please make sure illusory_line_conditions_100.csv is in the same folder.');
+        throw error;
+    }
 }
-// Shuffle trials
-jsPsych.randomization.shuffle(trial_conditions);
 
 /* ============================================
    EXPERIMENT TIMELINE
@@ -189,16 +197,18 @@ function draw_trial_stimuli(canvas, context, phase, progress = 0) {
         
         const lineCondition = jsPsych.timelineVariable('lineCondition');
         if (lineCondition === 'congruent') {
-            x_start = centerX + circle_offset_x;
-            x_end = centerX - circle_offset_x;
+            // Line goes from right circle edge to left circle edge (right-to-left)
+            x_start = centerX + circle_offset_x - circle_radius;  // Inner edge of right circle
+            x_end = centerX - circle_offset_x + circle_radius;    // Inner edge of left circle
             draw_full = false;
         } else if (lineCondition === 'incongruent') {
-            x_start = centerX - circle_offset_x;
-            x_end = centerX + circle_offset_x;
+            // Line goes from left circle edge to right circle edge (left-to-right)
+            x_start = centerX - circle_offset_x + circle_radius;  // Inner edge of left circle
+            x_end = centerX + circle_offset_x - circle_radius;    // Inner edge of right circle
             draw_full = false;
-        } else {  // center - draws full line instantly
-            x_start = centerX - circle_offset_x;
-            x_end = centerX + circle_offset_x;
+        } else {  // center - draws full line instantly between circles
+            x_start = centerX - circle_offset_x + circle_radius;  // Inner edge of left circle
+            x_end = centerX + circle_offset_x - circle_radius;    // Inner edge of right circle
             draw_full = true;
         }
         
@@ -340,5 +350,25 @@ const debrief = {
 };
 timeline.push(debrief);
 
-// Run experiment
-jsPsych.run(timeline);
+// Run experiment - load conditions first
+async function runExperiment() {
+    try {
+        // Load trial conditions from CSV
+        await loadConditions();
+        console.log(`Starting experiment with ${trial_conditions.length} trials`);
+        
+        // Run experiment
+        await jsPsych.run(timeline);
+    } catch (error) {
+        console.error('Failed to start experiment:', error);
+        document.body.innerHTML = `
+            <div style="color: white; text-align: center; margin-top: 100px;">
+                <h1>Error Loading Experiment</h1>
+                <p>Could not load trial conditions.</p>
+                <p>Please make sure <strong>illusory_line_conditions_100.csv</strong> is in the same folder as this file.</p>
+            </div>
+        `;
+    }
+}
+
+runExperiment();
