@@ -40,8 +40,8 @@ function deg_to_pixels(degrees, viewing_distance_cm, monitor_width_cm, screen_wi
 }
 
 // Screen dimensions - use actual screen, not canvas
-const screen_width = window.screen.innerWidth;
-const screen_height = window.screen.innerHeight;
+const screen_width = window.innerWidth;
+const screen_height = window.innerHeight;
 const canvas_width = screen_width;
 const canvas_height = screen_height;
 
