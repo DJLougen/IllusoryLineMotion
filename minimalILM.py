@@ -22,7 +22,7 @@ Response keys:
 """
 
 from psychopy import visual, core, event, monitors, data, gui
-import pandas as pd
+import polars as pl
 from numpy.random import randint
 import os
 
@@ -65,7 +65,7 @@ thisExp = data.ExperimentHandler(
 )
 
 # --- Load conditions ---
-trials = pd.read_csv("psychoPY/illusory_line_conditions_100.csv").to_dict("records")
+trials = pl.read_csv("psychoPY/illusory_line_conditions_100.csv").to_dict("records")
 
 # --- Define monitor manually ---
 mon = monitors.Monitor("MBP_M3Max")  # name is arbitrary
