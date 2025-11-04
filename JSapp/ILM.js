@@ -11,15 +11,14 @@
  * 6. ITI: 500 ms
  * 
  * Parameters:
- * - line_speed: 200 deg/sec (matches Python version)
- * - SOA: 150ms (matches Python version)
+ * - line_speed: 200 deg/sec 
  * - Response keys: Q (left→right), P (right→left)
  */
 
 // Initialize jsPsych
 const jsPsych = initJsPsych({
     on_finish: function() {
-        // Create filename matching Python version format
+        // Create filename 
         const participant_id = jsPsych.data.get().values()[0].participant_id;
         const date = new Date().toISOString().slice(0,10).replace(/-/g, '_');
         const filename = `${participant_id}_illusoryLineTask_${date}.csv`;
@@ -27,15 +26,14 @@ const jsPsych = initJsPsych({
     }
 });
 
-// Experiment parameters (matching Python version exactly)
+// Experiment parameters 
 let params = {
     participant_id: '',
     session: '001',
-    line_speed: 200.0,  // degrees per second (matches Python LINE_SPEED)
-    soa: 150,  // milliseconds (matches Python SOA * 1000)
-    monitor_width_cm: 34.5,  // matches Python mon.setWidth(34.5)
-    viewing_distance_cm: 60,   // matches Python mon.setDistance(60)
-    screen_width_px: 1728,     // matches Python mon.setSizePix([1728, 1117])
+    line_speed: 200.0,  // degrees per second (LINE_SPEED)
+    monitor_width_cm: 34.5,  // mon.setWidth(34.5)
+    viewing_distance_cm: 60,   // Python mon.setDistance(60)
+    screen_width_px: 1728,     // Python mon.setSizePix([1728, 1117])
     screen_height_px: 1117
 };
 
@@ -108,7 +106,7 @@ async function loadConditions() {
 
 const timeline = [];
 
-// Participant info form (matching Python version)
+// Participant info form 
 const participant_info = {
     type: jsPsychSurveyHtmlForm,
     preamble: '<h2>Illusory Line Motion Task</h2><p>Please enter your information:</p>',
@@ -125,7 +123,7 @@ const participant_info = {
         params.participant_id = data.response.participant_id;
         params.session = data.response.session;
         
-        // Add experiment metadata to all trials (matching Python expInfo)
+        // Add experiment metadata to all trials 
         jsPsych.data.addProperties({
             participant: params.participant_id,
             session: params.session,
@@ -340,9 +338,20 @@ function createTrialProcedure() {
                 const context = canvas.getContext('2d');
                 context.fillStyle = 'black';
                 context.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Add response prompt text
+                context.fillStyle = 'white';
+                context.font = '24px Arial';
+                context.textAlign = 'center';
+                context.fillText('Which direction did the line move?', canvas.width / 2, canvas.height / 2 - 40);
+                
+                context.font = '20px Arial';
+                context.fillText('Q = Left to Right', canvas.width / 2, canvas.height / 2 + 20);
+                context.fillText('P = Right to Left', canvas.width / 2, canvas.height / 2 + 50);
             },
+            
             choices: ['q', 'p'],
-            trial_duration: 2000,
+            trial_duration: null,  // wait for response
             data: {
                 task: 'response',
                 cueCondition: jsPsych.timelineVariable('cueCondition'),
@@ -352,7 +361,7 @@ function createTrialProcedure() {
                 }
             },
             on_finish: function(data) {
-                // Add response and rt columns to match Python output
+                // Add response and rt columns 
                 data.response = data.response;  // 'q' or 'p' or null
                 data.rt = data.rt;  // reaction time or null
                 
