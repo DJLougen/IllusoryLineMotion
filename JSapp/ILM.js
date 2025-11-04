@@ -261,7 +261,7 @@ const trial_procedure = {
                 return params.soa - 50;
             }
         },
-        // Line animation with response
+        // Line animation (NO response collection)
         {
             type: jsPsychCanvasKeyboardResponse,
             canvas_size: [screen_width, screen_height],
@@ -292,6 +292,18 @@ const trial_procedure = {
                     animate();
                 }
             },
+            choices: "NO_KEYS",
+            trial_duration: 500
+        },
+        // Response screen (replaces ITI)
+        {
+            type: jsPsychCanvasKeyboardResponse,
+            canvas_size: [screen_width, screen_height],
+            stimulus: function(canvas) {
+                const context = canvas.getContext('2d');
+                context.fillStyle = 'black';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+            },
             choices: ['q', 'p'],
             trial_duration: 2000,
             data: {
@@ -302,18 +314,6 @@ const trial_procedure = {
             on_finish: function(data) {
                 data.correct = null;  // We're not checking correctness, just perception
             }
-        },
-        // ITI blank (500ms)
-        {
-            type: jsPsychCanvasKeyboardResponse,
-            canvas_size: [screen_width, screen_height],
-            stimulus: function(canvas) {
-                const context = canvas.getContext('2d');
-                context.fillStyle = 'black';
-                context.fillRect(0, 0, canvas.width, canvas.height);
-            },
-            choices: "NO_KEYS",
-            trial_duration: 500
         }
     ],
     timeline_variables: trial_conditions
