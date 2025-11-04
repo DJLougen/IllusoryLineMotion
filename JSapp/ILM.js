@@ -11,7 +11,7 @@
  * 6. ITI: 500 ms
  * 
  * Parameters:
- * - line_speed: 200 deg/sec ~~~~~ change to around 60 deg/sec for correct motion
+ * - line_speed: 60 deg/sec ~~~~~ change to around 60 deg/sec for correct motion
  * - Response keys: Q (left→right), P (right→left)
  */
 
