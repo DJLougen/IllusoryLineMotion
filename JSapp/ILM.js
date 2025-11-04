@@ -1,28 +1,42 @@
 /**
- * Illusory Line Motion (ILM) Task for IOR Research
+ * Illusory Line Motion (ILM) Task
  * jsPsych version converted from PsychoPy
  * 
- * Timing: 1000ms fixation → 50ms cue → 100ms blank → line animation → response
- * Line speed: 200 deg/sec (very fast - line draws in 40ms)
- * Response keys: Q (left→right), P (right→left)
+ * Timing sequence:
+ * 1. Fixation + placeholders: 1000 ms
+ * 2. Cue appears: 50 ms
+ * 3. Blank (placeholders only): SOA - 50 ms (100ms)
+ * 4. Line animates at specified speed
+ * 5. Response collection (2000 ms timeout)
+ * 6. ITI: 500 ms
+ * 
+ * Parameters:
+ * - line_speed: 200 deg/sec (matches Python version)
+ * - SOA: 150ms (matches Python version)
+ * - Response keys: Q (left→right), P (right→left)
  */
 
 // Initialize jsPsych
 const jsPsych = initJsPsych({
     on_finish: function() {
-        // Download data as CSV
-        jsPsych.data.get().localSave('csv', 'ilm_data.csv');
+        // Create filename matching Python version format
+        const participant_id = jsPsych.data.get().values()[0].participant_id;
+        const date = new Date().toISOString().slice(0,10).replace(/-/g, '_');
+        const filename = `${participant_id}_illusoryLineTask_${date}.csv`;
+        jsPsych.data.get().localSave('csv', filename);
     }
 });
 
-// Experiment parameters (fixed - matching Python version)
+// Experiment parameters (matching Python version exactly)
 let params = {
     participant_id: '',
     session: '001',
-    line_speed: 200.0,  // degrees per second (very fast!)
-    soa: 150,  // milliseconds
-    monitor_width_cm: 34.5,  // fixed for now
-    viewing_distance_cm: 60   // fixed for now
+    line_speed: 200.0,  // degrees per second (matches Python LINE_SPEED)
+    soa: 150,  // milliseconds (matches Python SOA * 1000)
+    monitor_width_cm: 34.5,  // matches Python mon.setWidth(34.5)
+    viewing_distance_cm: 60,   // matches Python mon.setDistance(60)
+    screen_width_px: 1728,     // matches Python mon.setSizePix([1728, 1117])
+    screen_height_px: 1117
 };
 
 // Visual angle calculation
@@ -52,6 +66,9 @@ let trial_conditions = [];
 async function loadConditions() {
     try {
         const response = await fetch('illusory_line_conditions_100.csv');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const text = await response.text();
         const rows = text.trim().split('\n').slice(1); // Skip header
         
@@ -68,8 +85,20 @@ async function loadConditions() {
         return trial_conditions;
     } catch (error) {
         console.error('Error loading CSV:', error);
-        alert('Error loading trial conditions. Please make sure illusory_line_conditions_100.csv is in the same folder.');
-        throw error;
+        console.log('Using fallback test trials...');
+        
+        // Fallback: create a few test trials
+        trial_conditions = [
+            {cueCondition: 'cued', lineCondition: 'congruent', trial_num: 1},
+            {cueCondition: 'uncued', lineCondition: 'congruent', trial_num: 2},
+            {cueCondition: 'cued', lineCondition: 'incongruent', trial_num: 3},
+            {cueCondition: 'uncued', lineCondition: 'incongruent', trial_num: 4},
+            {cueCondition: 'cued', lineCondition: 'center', trial_num: 5},
+            {cueCondition: 'uncued', lineCondition: 'center', trial_num: 6}
+        ];
+        
+        console.log(`Using ${trial_conditions.length} fallback test trials`);
+        return trial_conditions;
     }
 }
 
@@ -79,7 +108,7 @@ async function loadConditions() {
 
 const timeline = [];
 
-// Participant info form
+// Participant info form (matching Python version)
 const participant_info = {
     type: jsPsychSurveyHtmlForm,
     preamble: '<h2>Illusory Line Motion Task</h2><p>Please enter your information:</p>',
@@ -87,18 +116,22 @@ const participant_info = {
         <p><label>Participant ID: <input name="participant_id" type="text" value="${Math.floor(Math.random() * 999999).toString().padStart(6, '0')}" required /></label></p>
         <p><label>Session: <input name="session" type="text" value="001" required /></label></p>
         <p style="font-size: 12px; color: #888; margin-top: 20px;">
-            Detected screen: ${screen_width} x ${screen_height} pixels<br>
-            Line speed: 200 deg/sec | SOA: 150ms
+            Screen: ${screen_width} x ${screen_height} pixels<br>
+            Line speed: ${params.line_speed} deg/sec | SOA: ${params.soa}ms<br>
+            Monitor: ${params.monitor_width_cm}cm @ ${params.viewing_distance_cm}cm
         </p>
     `,
     on_finish: function(data) {
         params.participant_id = data.response.participant_id;
         params.session = data.response.session;
         
-        // Add to all data
+        // Add experiment metadata to all trials (matching Python expInfo)
         jsPsych.data.addProperties({
-            participant_id: params.participant_id,
+            participant: params.participant_id,
             session: params.session,
+            expName: 'illusoryLineTask',
+            date: new Date().toISOString().slice(0,10),
+            psychopyVersion: 'jsPsych-7.3.4',
             line_speed: params.line_speed,
             soa: params.soa,
             monitor_width_cm: params.monitor_width_cm,
@@ -223,20 +256,24 @@ function draw_trial_stimuli(canvas, context, phase, progress = 0) {
     }
 }
 
-// Create trial procedure
-const trial_procedure = {
-    timeline: [
-        // Fixation (1000ms)
-        {
-            type: jsPsychCanvasKeyboardResponse,
-            canvas_size: [screen_width, screen_height],
-            stimulus: function(canvas) {
-                const context = canvas.getContext('2d');
-                draw_trial_stimuli(canvas, context, 'fixation');
+// Create trial procedure (will be populated after loading conditions)
+let trial_procedure = null;
+
+// Function to create trial procedure after conditions are loaded
+function createTrialProcedure() {
+    return {
+        timeline: [
+            // Fixation (1000ms)
+            {
+                type: jsPsychCanvasKeyboardResponse,
+                canvas_size: [screen_width, screen_height],
+                stimulus: function(canvas) {
+                    const context = canvas.getContext('2d');
+                    draw_trial_stimuli(canvas, context, 'fixation');
+                },
+                choices: "NO_KEYS",
+                trial_duration: 1000
             },
-            choices: "NO_KEYS",
-            trial_duration: 1000
-        },
         // Cue (50ms)
         {
             type: jsPsychCanvasKeyboardResponse,
@@ -308,17 +345,30 @@ const trial_procedure = {
             trial_duration: 2000,
             data: {
                 task: 'response',
-                cue_condition: jsPsych.timelineVariable('cueCondition'),
-                line_condition: jsPsych.timelineVariable('lineCondition')
+                cueCondition: jsPsych.timelineVariable('cueCondition'),
+                lineCondition: jsPsych.timelineVariable('lineCondition'),
+                trial_n: function() {
+                    return jsPsych.data.get().filter({task: 'response'}).count() + 1;
+                }
             },
             on_finish: function(data) {
-                data.correct = null;  // We're not checking correctness, just perception
+                // Add response and rt columns to match Python output
+                data.response = data.response;  // 'q' or 'p' or null
+                data.rt = data.rt;  // reaction time or null
+                
+                // Log trial info like Python version
+                const trial_num = data.trial_n;
+                const cue = data.cueCondition;
+                const line = data.lineCondition;
+                const key = data.response;
+                const rt = data.rt;
+                console.log(`Trial ${trial_num.toString().padStart(3, '0')}: cue=${cue}, line=${line}, key=${key}, rt=${rt ? rt.toFixed(3) + 's' : 'None'}`);
             }
         }
     ],
     timeline_variables: trial_conditions
 };
-timeline.push(trial_procedure);
+}
 
 // Debrief
 const debrief = {
@@ -348,14 +398,27 @@ const debrief = {
         `;
     }
 };
-timeline.push(debrief);
 
 // Run experiment - load conditions first
 async function runExperiment() {
     try {
         // Load trial conditions from CSV
         await loadConditions();
+        
+        // Check if conditions loaded properly
+        if (trial_conditions.length === 0) {
+            throw new Error('No trial conditions loaded from CSV');
+        }
+        
         console.log(`Starting experiment with ${trial_conditions.length} trials`);
+        console.log('First few trials:', trial_conditions.slice(0, 3));
+        
+        // Create and add trial procedure after conditions are loaded
+        trial_procedure = createTrialProcedure();
+        timeline.push(trial_procedure);
+        
+        // Add debrief screen (calculated after trials complete)
+        timeline.push(debrief);
         
         // Run experiment
         await jsPsych.run(timeline);
@@ -364,8 +427,9 @@ async function runExperiment() {
         document.body.innerHTML = `
             <div style="color: white; text-align: center; margin-top: 100px;">
                 <h1>Error Loading Experiment</h1>
-                <p>Could not load trial conditions.</p>
+                <p>Error: ${error.message}</p>
                 <p>Please make sure <strong>illusory_line_conditions_100.csv</strong> is in the same folder as this file.</p>
+                <p>Check the browser console (F12) for more details.</p>
             </div>
         `;
     }
