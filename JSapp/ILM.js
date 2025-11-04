@@ -30,7 +30,7 @@ const jsPsych = initJsPsych({
 let params = {
     participant_id: '',
     session: '001',
-    line_speed: 75.0,  // degrees per second (LINE_SPEED)
+    line_speed: 60.0,  // degrees per second (LINE_SPEED)
     monitor_width_cm: 34.5,  // mon.setWidth(34.5)
     viewing_distance_cm: 60,   // Python mon.setDistance(60)
     screen_width_px: 1728,     // Python mon.setSizePix([1728, 1117])
