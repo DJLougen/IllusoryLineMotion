@@ -5,13 +5,13 @@
  * Timing sequence:
  * 1. Fixation + placeholders: 1000 ms
  * 2. Cue appears: 50 ms
- * 3. Blank (placeholders only): SOA - 50 ms (100ms)
+ * 3. Blank (placeholders only): SOA - 50 ms (100ms) 
  * 4. Line animates at specified speed
  * 5. Response collection (2000 ms timeout)
  * 6. ITI: 500 ms
  * 
  * Parameters:
- * - line_speed: 60 deg/sec ~~~~~ change to around 60 deg/sec for correct motion
+ * - line_speed: 60 deg/sec ~~~~~ change to around 60 deg/sec for correct motion 133 deg/ms
  * - Response keys: Q (left→right), P (right→left)
  */
 
