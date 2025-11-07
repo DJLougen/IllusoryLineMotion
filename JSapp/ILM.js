@@ -372,6 +372,15 @@ function createTrialProcedure() {
                 const key = data.response;
                 const rt = data.rt;
                 console.log(`Trial ${trial_num.toString().padStart(3, '0')}: cue=${cue}, line=${line}, key=${key}, rt=${rt ? rt.toFixed(3) + 's' : 'None'}`);
+                jsPsych.data.write({
+                    participant_id: params.participant_id,
+                    session: params.session,
+                    trial_num: trial_num,
+                    cueCondition: cue,
+                    lineCondition: line,
+                    response_key: key,
+                    rt: rt
+                });
             }
         }
     ],
@@ -392,13 +401,8 @@ const debrief = {
             <div style="text-align: center; max-width: 800px; margin: 0 auto;">
                 <h1>Experiment Complete!</h1>
                 <p style="font-size: 18px;">Thank you for participating.</p>
-                <div style="margin: 30px 0; padding: 20px; background: #222;">
-                    <p style="font-size: 16px;">Trials completed: ${n_trials}</p>
-                    <p style="font-size: 16px;">Response rate: ${response_rate}%</p>
-                </div>
                 <p style="font-size: 16px;">
-                    Your data has been downloaded as a CSV file.<br>
-                    Please send this file to the researcher.
+                    Your data will download after you press the key.<br>
                 </p>
                 <p style="font-size: 14px; margin-top: 40px;">
                     Press any key to finish.
@@ -413,7 +417,6 @@ async function runExperiment() {
     try {
         // Load trial conditions from CSV
         await loadConditions();
-        
         // Check if conditions loaded properly
         if (trial_conditions.length === 0) {
             throw new Error('No trial conditions loaded from CSV');
