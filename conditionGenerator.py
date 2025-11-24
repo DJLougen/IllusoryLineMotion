@@ -22,7 +22,7 @@ import random
 # -----------------------------
 # USER SETTINGS
 # -----------------------------
-total_trials = 100
+total_trials = 150
 seed = 42
 output_path = f"illusory_line_conditions_{total_trials}.csv"
 
@@ -31,9 +31,9 @@ output_path = f"illusory_line_conditions_{total_trials}.csv"
 # -----------------------------
 cue_conditions = ["cued", "uncued"]
 line_conditions = {
-    "congruent":   0.20, # 40%
-    "incongruent": 0.20, # 40%
-    "center":      0.60  # 20%   
+    "congruent":   0.3333333333333, # 33%
+    "incongruent": 0.3333333333333, # 33%
+    "center":      0.3333333333333  # 33%   
 }
 
 # -----------------------------
