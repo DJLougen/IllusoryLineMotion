@@ -63,7 +63,7 @@ let trial_conditions = [];
 // Function to load and parse CSV
 async function loadConditions() {
     try {
-        const response = await fetch('illusory_line_conditions_100.csv');
+        const response = await fetch('illusory_line_conditions_150.csv');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -87,12 +87,12 @@ async function loadConditions() {
         
         // Fallback: create a few test trials
         trial_conditions = [
-            {cueCondition: 'cued', lineCondition: 'congruent', trial_num: 1},
-            {cueCondition: 'uncued', lineCondition: 'congruent', trial_num: 2},
-            {cueCondition: 'cued', lineCondition: 'incongruent', trial_num: 3},
-            {cueCondition: 'uncued', lineCondition: 'incongruent', trial_num: 4},
-            {cueCondition: 'cued', lineCondition: 'center', trial_num: 5},
-            {cueCondition: 'uncued', lineCondition: 'center', trial_num: 6}
+            {cueCondition: 'right', lineCondition: 'right', trial_num: 1},
+            {cueCondition: 'left', lineCondition: 'right', trial_num: 2},
+            {cueCondition: 'right', lineCondition: 'left', trial_num: 3},
+            {cueCondition: 'left', lineCondition: 'left', trial_num: 4},
+            {cueCondition: 'right', lineCondition: 'center', trial_num: 5},
+            {cueCondition: 'left', lineCondition: 'center', trial_num: 6}
         ];
         
         console.log(`Using ${trial_conditions.length} fallback test trials`);
@@ -213,7 +213,7 @@ function draw_trial_stimuli(canvas, context, phase, progress = 0) {
     
     // Draw cue if in cue phase
     if (phase === 'cue') {
-        const cue_x = jsPsych.timelineVariable('cueCondition') === 'cued' ? 
+        const cue_x = jsPsych.timelineVariable('cueCondition') === 'right' ? 
             centerX + circle_offset_x : centerX - circle_offset_x;
         
         context.beginPath();
@@ -227,12 +227,12 @@ function draw_trial_stimuli(canvas, context, phase, progress = 0) {
         let x_start, x_end, draw_full;
         
         const lineCondition = jsPsych.timelineVariable('lineCondition');
-        if (lineCondition === 'congruent') {
+        if (lineCondition === 'right') {
             // Line goes from right circle edge to left circle edge (right-to-left)
             x_start = centerX + circle_offset_x - circle_radius;  // Inner edge of right circle
             x_end = centerX - circle_offset_x + circle_radius;    // Inner edge of left circle
             draw_full = false;
-        } else if (lineCondition === 'incongruent') {
+        } else if (lineCondition === 'left') {
             // Line goes from left circle edge to right circle edge (left-to-right)
             x_start = centerX - circle_offset_x + circle_radius;  // Inner edge of left circle
             x_end = centerX + circle_offset_x - circle_radius;    // Inner edge of right circle
