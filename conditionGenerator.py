@@ -9,9 +9,9 @@
 # × 3 Line Conditions (congruent, center, incongruent)
 #
 # Fixed ratio:
-#   congruent   = 20%
-#   incongruent = 20%
-#   center      = 60%
+#   left   = 33%
+#   right = 33%
+#   center = 33%
 #
 # Automatically balances cued/uncued within each line type.
 # ============================================================
@@ -24,15 +24,15 @@ import random
 # -----------------------------
 total_trials = 150
 seed = 42
-output_path = f"illusory_line_conditions_{total_trials}.csv"
+output_path = f"JSapp/illusory_line_conditions_{total_trials}.csv"
 
 # -----------------------------
 # Factor setup
 # -----------------------------
-cue_conditions = ["cued", "uncued"]
+cue_conditions = ["left", "right"]
 line_conditions = {
-    "congruent":   0.3333333333333, # 33%
-    "incongruent": 0.3333333333333, # 33%
+    "left":   0.3333333333333, # 33%
+    "right": 0.3333333333333, # 33%
     "center":      0.3333333333333  # 33%   
 }
 
