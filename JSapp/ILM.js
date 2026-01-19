@@ -145,6 +145,7 @@ const participant_info = {
         <p><label>Participant ID: <input name="participant_id" type="text" value="${Math.floor(Math.random() * 999999).toString().padStart(6, '0')}" required /></label></p>
         <p><label>Session: <input name="session" type="text" value="001" required /></label></p>
         <p><label>Line Speed (deg/sec): <input name="line_speed" type="number" step="0.1" value="${params.line_speed}" required /></label></p>
+        <p><label>Number of Trials (0 = all): <input name="num_trials" type="number" min="0" value="${params.num_trials}" required /></label></p>
         <p style="font-size: 12px; color: #888; margin-top: 20px;">
             Screen: ${screen_width} x ${screen_height} pixels<br>
             SOA: ${params.soa}ms | Monitor: ${params.monitor_width_cm}cm @ ${params.viewing_distance_cm}cm
@@ -154,6 +155,7 @@ const participant_info = {
         params.participant_id = data.response.participant_id;
         params.session = data.response.session;
         params.line_speed = parseFloat(data.response.line_speed);
+        params.num_trials = parseInt(data.response.num_trials);
 
         // Add experiment metadata to all trials
         jsPsych.data.addProperties({
@@ -294,6 +296,12 @@ let trial_procedure = null;
 
 // Function to create trial procedure after conditions are loaded
 function createTrialProcedure() {
+    // Limit trials if num_trials is set (> 0)
+    let trials_to_use = trial_conditions;
+    if (params.num_trials > 0 && params.num_trials < trial_conditions.length) {
+        trials_to_use = trial_conditions.slice(0, params.num_trials);
+    }
+
     return {
         timeline: [
             // Fixation (1000ms)
@@ -441,7 +449,7 @@ function createTrialProcedure() {
                 }
             }
         ],
-        timeline_variables: trial_conditions
+        timeline_variables: trials_to_use
     };
 }
 
