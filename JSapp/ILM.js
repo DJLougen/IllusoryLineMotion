@@ -11,7 +11,7 @@
  * 6. ITI: 500 ms
  * 
  * Parameters:
- * - line_speed: 60 deg/sec ~~~~~ change to around 60 deg/sec for correct motion
+ * - line_speed: 100 deg/sec ~~~~~ change to around 100 deg/sec for correct motion
  * - Response keys: Q (left→right), P (right→left)
  */
 
@@ -339,12 +339,23 @@ function createTrialProcedure() {
                     return params.soa - 50;
                 }
             },
-            // Line animation + 1 second wait (fixed duration)
+            // Line animation + response collection
             {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: '',
-                choices: "NO_KEYS",
-                trial_duration: 1000,  // Fixed 1 second duration (draw + 0.5s wait)
+                choices: ['q', 'p'],
+                trial_duration: 2000,  // 2 second response window
+                data: {
+                    task: 'response',
+                    cueCondition: jsPsych.timelineVariable('cueCondition'),
+                    lineCondition: jsPsych.timelineVariable('lineCondition'),
+                    trial_n: function () {
+                        return jsPsych.data.get().filter({ task: 'response' }).count() + 1;
+                    },
+                    cue_side: null,
+                    line_origin: null,
+                    response_direction: null
+                },
                 on_start: function () {
                     // Create and manage our own canvas for animation
                     const canvas = document.createElement('canvas');
@@ -376,7 +387,6 @@ function createTrialProcedure() {
 
                             draw_trial_stimuli(canvas, context, 'line', progress, lineCondition);
 
-                            // Keep animating until done, then show completed line
                             if (progress < 1.0) {
                                 requestAnimationFrame(animate);
                             }
@@ -384,55 +394,18 @@ function createTrialProcedure() {
                         animate();
                     }
                 },
-                on_finish: function () {
-                    // Clean up our canvas
+                on_finish: function (data) {
+                    // Clean up canvas
                     const canvas = document.getElementById('line-animation-canvas');
                     if (canvas) canvas.remove();
-                }
-            },
-            // Response screen (replaces ITI)
-            {
-                type: jsPsychCanvasKeyboardResponse,
-                canvas_size: [screen_width, screen_height],
-                stimulus: function (canvas) {
-                    const context = canvas.getContext('2d');
-                    context.fillStyle = 'black';
-                    context.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // Add response prompt text
-                    context.fillStyle = 'white';
-                    context.font = '24px Arial';
-                    context.textAlign = 'center';
-                    context.fillText('Which direction did the line move?', canvas.width / 2, canvas.height / 2 - 40);
-
-                    context.font = '20px Arial';
-                    context.fillText('Q = Left to Right', canvas.width / 2, canvas.height / 2 + 20);
-                    context.fillText('P = Right to Left', canvas.width / 2, canvas.height / 2 + 50);
-                },
-
-                choices: ['q', 'p'],
-                trial_duration: null,  // wait for response
-                data: {
-                    task: 'response',
-                    cueCondition: jsPsych.timelineVariable('cueCondition'),
-                    lineCondition: jsPsych.timelineVariable('lineCondition'),
-                    trial_n: function () {
-                        return jsPsych.data.get().filter({ task: 'response' }).count() + 1;
-                    },
-                    // These will be populated in on_finish
-                    cue_side: null,
-                    line_origin: null,
-                    response_direction: null
-                },
-                on_finish: function (data) {
                     const trial_num = data.trial_n;
-                    const cue_side = data.cueCondition;  // 'left' or 'right'
-                    const line_origin = data.lineCondition;  // 'left', 'right', or 'center'
-                    const key = data.response;  // 'q' or 'p' or null
+                    const cue_side = data.cueCondition;
+                    const line_origin = data.lineCondition;
+                    const key = data.response;
                     const rt = data.rt;
 
                     // Convert key press to perceived direction
-                    // Q = perceived left-to-right, P = perceived right-to-left
                     let response_direction = null;
                     if (key === 'q') {
                         response_direction = 'left_to_right';
@@ -440,13 +413,19 @@ function createTrialProcedure() {
                         response_direction = 'right_to_left';
                     }
 
-                    // Store clear, meaningful data
                     data.cue_side = cue_side;
                     data.line_origin = line_origin;
                     data.response_direction = response_direction;
 
                     console.log(`Trial ${trial_num.toString().padStart(3, '0')}: cue=${cue_side}, line_from=${line_origin}, response=${response_direction}, rt=${rt ? rt.toFixed(3) + 's' : 'None'}`);
                 }
+            },
+            // Blank ITI (1 second)
+            {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: '<div style="background: black; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;"></div>',
+                choices: "NO_KEYS",
+                trial_duration: 1000
             }
         ],
         timeline_variables: trials_to_use
