@@ -1,126 +1,104 @@
-# Illusory Line Motion (ILM) Task for IOR Research
+# Illusory Line Motion (ILM) Task
 
-## Quick Start for Testing
+A web-based implementation of the Illusory Line Motion paradigm for studying inhibition of return (IOR) and attention.
 
-### Prerequisites
-- download and install [VSCode](https://code.visualstudio.com/) or another code editor
-- install [Python 3.8+](https://www.python.org/downloads/)
-- download this and install [psychopy](https://www.psychopy.org/)
-- Extension: Python (by Microsoft) for VSCode 
-- Mac: Shift+Command+P or Windows : Shift+Ctrl+P→ "Python: Select Interpreter" → choose Python 3.8+ environment
-- Python 3.8+
-- PsychoPy library
+## Overview
 
-### Installation
-```bash
-#In terminal or command prompt type the following:
-# Install PsychoPy
-pip install psychopy
+In the Illusory Line Motion illusion, a line that appears instantaneously can appear to "shoot" away from a previously attended location. This experiment measures perceived line motion direction following peripheral cues.
 
-# Or if using conda:
-conda install -c conda-forge psychopy
+## Running the Experiment
+
+### Online (Pavlovia)
+The experiment is hosted on Pavlovia and can be run directly in a web browser:
+- URL: [Your Pavlovia experiment URL]
+- No installation required
+- Works on any modern browser (Chrome, Firefox, Safari, Edge)
+
+### Local Testing
+1. Clone this repository
+2. Open `index.html` in a web browser
+3. For best results, use a local server:
+   ```bash
+   # Using Python
+   python -m http.server 8000
+   # Then open http://localhost:8000
+   ```
+
+## Task Instructions
+
+1. Keep your eyes on the central fixation cross
+2. Two circles will appear on either side of fixation
+3. One circle will briefly flash (the cue)
+4. A line will then appear between the circles
+5. Report the perceived direction of line motion:
+   - Press **Q** if the line appeared to move from **LEFT to RIGHT**
+   - Press **P** if the line appeared to move from **RIGHT to LEFT**
+
+## Trial Structure
+
+| Phase | Duration |
+|-------|----------|
+| Fixation + placeholders | 1000 ms |
+| Cue flash | 50 ms |
+| Blank interval | SOA - 50 ms (default: 100 ms) |
+| Line animation | Speed-dependent (~107 ms at 75 deg/s) |
+| Response window | 2000 ms |
+| Inter-trial interval | 1000 ms |
+
+## Experimental Conditions
+
+- **Cue side**: Left or Right
+- **Line origin**: Left, Right, or Center (instant)
+  - Left: Line draws from left circle toward right
+  - Right: Line draws from right circle toward left
+  - Center: Line appears instantaneously (control)
+
+## Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| line_speed | 75 deg/s | Speed of line animation |
+| soa | 150 ms | Stimulus onset asynchrony |
+| num_trials | 150 | Total number of trials (0 = all from CSV) |
+
+## Output Data
+
+Data is saved as CSV with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| participant_id | Participant identifier |
+| session | Session number |
+| trial_num | Trial number |
+| cue_side | Which side was cued (left/right) |
+| line_origin | Where line drew from (left/right/center) |
+| rt | Reaction time in ms |
+| line_speed | Line speed setting |
+| soa | SOA setting |
+| response_direction | Perceived direction (left_to_right/right_to_left) |
+
+## File Structure
+
+```
+IllusoryLineMotion/
+├── index.html                      # Main HTML file
+├── ILM.js                          # Experiment script
+├── illusory_line_conditions_150.csv # Trial conditions
+├── JSapp/                          # Development folder
+│   ├── index.html
+│   ├── ILM.js
+│   └── illusory_line_conditions_150.csv
+└── README.md
 ```
 
-### Running the Experiment
-```bash
-# 1. Clone or download this repository
-# 2. Navigate to the folder
-cd path/to/ILM_task
+## Technical Details
 
-# 3. Run the experiment
-python minimalILM.py
-```
-
-### First-Time Setup
-The experiment will automatically:
-- Show a dialog to enter participant info and adjust parameters
-- Create a `data/` folder for saving results
-- Save monitor configuration
-
-### Parameters You Can Adjust (in the GUI dialog)
-- **Participant ID**: Auto-generated, but editable
-- **Session**: Trial session number
-- **Line Speed**: How fast the line draws (default: 4.0 deg/sec)
-- **SOA**: Time between cue and line onset (default: 150ms)
-
-### Controls
-- **Q**: Line moving left to right
-- **P**: Line moving right to left  
-- **ESC**: Quit and save data
-- **SPACE**: Start experiment (on instruction screen)
-
-### File Structure
-```
-ILM_task/
-├── minimalILM.py          # Main experiment script
-├── psychoPY/
-│   └── illusory_line_conditions_100.csv  # Trial conditions
-├── data/                        # Created automatically for results
-└── README.md                    # This file
-```
-
-### Output
-Data saves to: `data/participantID_illusoryLineTask_date.csv`
-
-Contains: trial number, cue condition, line condition, response, RT
-
----
-
-## For Collaborators Testing Remotely
-
-### Quick Test (If PsychoPy not installed)
-```bash
-# Create virtual environment
-python -m venv ilm_env
-
-# Activate it
-# Mac/Linux:
-source ilm_env/bin/activate
-# Windows:
-ilm_env\Scripts\activate
-
-# Install requirements
-pip install psychopy pandas numpy
-
-# Run experiment
-python minimalILM.py
-```
-
----
-
-## Experiment Design
-
-**Paradigm**: Illusory Line Motion Task
-
-**Timing**:
-1. Fixation + placeholders: 1000ms
-2. Peripheral cue flash: 50ms
-3. Blank interval: SOA - 50ms (default 100ms)
-4. Line animation: speed-dependent
-5. Response window: 2000ms
-6. Inter-trial interval: 500ms
-
-**Conditions**:
-- Cue: cued vs uncued location
-- Line direction: congruent, incongruent, center
-
----
-
-## Troubleshooting
-
-**Error: "No module named 'monitors'"**
-→ Ensure PsychoPy is installed correctly
-**Monitor warnings on startup**
-→ Normal on first run, configuration will be saved
-
-**CSV file not found**
-→ Make sure `illusory_line_conditions_100.csv` is in `psychoPY/` folder
-
-**Timing warnings**
-→ Close other applications for better frame rate consistency
-
----
+- Built with jsPsych 7.3.4
+- Uses HTML5 Canvas for stimulus presentation
+- Pavlovia plugin for online data collection
+- Visual angles calculated based on monitor parameters
 
 ## Contact
+
 - Lab: Perception & Action Lab, University of Toronto
 - Email: d.lougen@mail.utoronto.ca
