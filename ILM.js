@@ -18,40 +18,43 @@
 // Initialize jsPsych
 const jsPsych = initJsPsych({
     on_finish: function () {
-        // Filter to only response trials and select relevant columns
-        const response_data = jsPsych.data.get().filter({ task: 'response' });
+        // Only download locally if NOT running on Pavlovia
+        if (typeof jsPsychPavlovia === 'undefined' || !window.location.href.includes('pavlovia')) {
+            // Filter to only response trials and select relevant columns
+            const response_data = jsPsych.data.get().filter({ task: 'response' });
 
-        // Get clean data with only the columns we need
-        const clean_data = response_data.values().map(trial => ({
-            participant_id: trial.participant,
-            session: trial.session,
-            trial_num: trial.trial_n,
-            cue_side: trial.cue_side,
-            line_origin: trial.line_origin,
-            response_direction: trial.response_direction,
-            rt: trial.rt,
-            line_speed: trial.line_speed,
-            soa: trial.soa
-        }));
+            // Get clean data with only the columns we need
+            const clean_data = response_data.values().map(trial => ({
+                participant_id: trial.participant,
+                session: trial.session,
+                trial_num: trial.trial_n,
+                cue_side: trial.cue_side,
+                line_origin: trial.line_origin,
+                response_direction: trial.response_direction,
+                rt: trial.rt,
+                line_speed: trial.line_speed,
+                soa: trial.soa
+            }));
 
-        // Convert to CSV
-        const columns = ['participant_id', 'session', 'trial_num', 'cue_side', 'line_origin', 'rt', 'line_speed', 'soa', 'response_direction'];
-        const csv_header = columns.join(',');
-        const csv_rows = clean_data.map(row => columns.map(col => row[col] ?? '').join(','));
-        const csv_content = [csv_header, ...csv_rows].join('\n');
+            // Convert to CSV
+            const columns = ['participant_id', 'session', 'trial_num', 'cue_side', 'line_origin', 'rt', 'line_speed', 'soa', 'response_direction'];
+            const csv_header = columns.join(',');
+            const csv_rows = clean_data.map(row => columns.map(col => row[col] ?? '').join(','));
+            const csv_content = [csv_header, ...csv_rows].join('\n');
 
-        // Create filename and download
-        const participant_id = clean_data[0]?.participant_id || 'unknown';
-        const date = new Date().toISOString().slice(0, 10).replace(/-/g, '_');
-        const filename = `${participant_id}_illusoryLineTask_${date}.csv`;
+            // Create filename and download
+            const participant_id = clean_data[0]?.participant_id || 'unknown';
+            const date = new Date().toISOString().slice(0, 10).replace(/-/g, '_');
+            const filename = `${participant_id}_illusoryLineTask_${date}.csv`;
 
-        const blob = new Blob([csv_content], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
+            const blob = new Blob([csv_content], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
     }
 });
 
@@ -136,6 +139,13 @@ async function loadConditions() {
 ============================================ */
 
 const timeline = [];
+
+// Pavlovia init - MUST be first in timeline
+const pavlovia_init = {
+    type: jsPsychPavlovia,
+    command: "init"
+};
+timeline.push(pavlovia_init);
 
 // Participant info form
 const participant_info = {
@@ -453,7 +463,7 @@ const debrief = {
                 <h1>Experiment Complete!</h1>
                 <p style="font-size: 18px;">Thank you for participating.</p>
                 <p style="font-size: 16px;">
-                    Your data will download after you press the key.<br>
+                    Your data is being saved...<br>
                 </p>
                 <p style="font-size: 14px; margin-top: 40px;">
                     Press any key to finish.
@@ -466,6 +476,12 @@ const debrief = {
         const canvas = document.getElementById('experiment-canvas');
         if (canvas) canvas.remove();
     }
+};
+
+// Pavlovia finish - MUST be last in timeline (uploads data)
+const pavlovia_finish = {
+    type: jsPsychPavlovia,
+    command: "finish"
 };
 
 // Run experiment - load conditions first
@@ -487,6 +503,9 @@ async function runExperiment() {
 
         // Add debrief screen (calculated after trials complete)
         timeline.push(debrief);
+
+        // Add Pavlovia finish to upload data
+        timeline.push(pavlovia_finish);
 
         // Run experiment
         await jsPsych.run(timeline);
