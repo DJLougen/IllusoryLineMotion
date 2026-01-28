@@ -137,13 +137,6 @@ async function loadConditions() {
 
 const timeline = [];
 
-// Pavlovia init - connects to Pavlovia server
-const pavlovia_init = {
-    type: jsPsychPavlovia,
-    command: "init"
-};
-timeline.push(pavlovia_init);
-
 // Participant info form
 const participant_info = {
     type: jsPsychSurveyHtmlForm,
@@ -305,41 +298,61 @@ function createTrialProcedure() {
         trials_to_use = trial_conditions.slice(0, params.num_trials);
     }
 
+    // Helper to create/get persistent canvas
+    function getCanvas() {
+        let canvas = document.getElementById('experiment-canvas');
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.width = screen_width;
+            canvas.height = screen_height;
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.zIndex = '9999';
+            canvas.id = 'experiment-canvas';
+            document.body.appendChild(canvas);
+        }
+        return canvas;
+    }
+
     return {
         timeline: [
             // Fixation (1000ms)
             {
-                type: jsPsychCanvasKeyboardResponse,
-                canvas_size: [screen_width, screen_height],
-                stimulus: function (canvas) {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: '',
+                choices: "NO_KEYS",
+                trial_duration: 1000,
+                on_start: function () {
+                    const canvas = getCanvas();
                     const context = canvas.getContext('2d');
                     draw_trial_stimuli(canvas, context, 'fixation');
-                },
-                choices: "NO_KEYS",
-                trial_duration: 1000
+                }
             },
             // Cue (50ms)
             {
-                type: jsPsychCanvasKeyboardResponse,
-                canvas_size: [screen_width, screen_height],
-                stimulus: function (canvas) {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: '',
+                choices: "NO_KEYS",
+                trial_duration: 50,
+                on_start: function () {
+                    const canvas = getCanvas();
                     const context = canvas.getContext('2d');
                     draw_trial_stimuli(canvas, context, 'cue');
-                },
-                choices: "NO_KEYS",
-                trial_duration: 50
+                }
             },
             // Blank (SOA - 50ms)
             {
-                type: jsPsychCanvasKeyboardResponse,
-                canvas_size: [screen_width, screen_height],
-                stimulus: function (canvas) {
-                    const context = canvas.getContext('2d');
-                    draw_trial_stimuli(canvas, context, 'blank');
-                },
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: '',
                 choices: "NO_KEYS",
                 trial_duration: function () {
                     return params.soa - 50;
+                },
+                on_start: function () {
+                    const canvas = getCanvas();
+                    const context = canvas.getContext('2d');
+                    draw_trial_stimuli(canvas, context, 'blank');
                 }
             },
             // Line animation + response collection
@@ -360,18 +373,7 @@ function createTrialProcedure() {
                     response_direction: null
                 },
                 on_start: function () {
-                    // Create and manage our own canvas for animation
-                    const canvas = document.createElement('canvas');
-                    canvas.width = screen_width;
-                    canvas.height = screen_height;
-                    canvas.style.position = 'fixed';
-                    canvas.style.top = '0';
-                    canvas.style.left = '0';
-                    canvas.style.zIndex = '9999';
-                    canvas.style.backgroundColor = 'black';
-                    canvas.id = 'line-animation-canvas';
-                    document.body.appendChild(canvas);
-
+                    const canvas = getCanvas();
                     const context = canvas.getContext('2d');
                     // Capture lineCondition NOW before async animation starts
                     const lineCondition = jsPsych.timelineVariable('lineCondition');
@@ -398,10 +400,6 @@ function createTrialProcedure() {
                     }
                 },
                 on_finish: function (data) {
-                    // Clean up canvas
-                    const canvas = document.getElementById('line-animation-canvas');
-                    if (canvas) canvas.remove();
-
                     const trial_num = data.trial_n;
                     const cue_side = data.cueCondition;
                     const line_origin = data.lineCondition;
@@ -426,9 +424,15 @@ function createTrialProcedure() {
             // Blank ITI (1 second)
             {
                 type: jsPsychHtmlKeyboardResponse,
-                stimulus: '<div style="background: black; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;"></div>',
+                stimulus: '',
                 choices: "NO_KEYS",
-                trial_duration: 1000
+                trial_duration: 1000,
+                on_start: function () {
+                    const canvas = getCanvas();
+                    const context = canvas.getContext('2d');
+                    context.fillStyle = 'black';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                }
             }
         ],
         timeline_variables: trials_to_use
@@ -456,6 +460,11 @@ const debrief = {
                 </p>
             </div>
         `;
+    },
+    on_start: function () {
+        // Remove experiment canvas so debrief text is visible
+        const canvas = document.getElementById('experiment-canvas');
+        if (canvas) canvas.remove();
     }
 };
 
@@ -478,13 +487,6 @@ async function runExperiment() {
 
         // Add debrief screen (calculated after trials complete)
         timeline.push(debrief);
-
-        // Pavlovia finish - saves data to server
-        const pavlovia_finish = {
-            type: jsPsychPavlovia,
-            command: "finish"
-        };
-        timeline.push(pavlovia_finish);
 
         // Run experiment
         await jsPsych.run(timeline);
