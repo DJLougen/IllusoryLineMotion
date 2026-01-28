@@ -140,12 +140,21 @@ async function loadConditions() {
 
 const timeline = [];
 
-// Pavlovia init - MUST be first in timeline
-const pavlovia_init = {
-    type: jsPsychPavlovia,
-    command: "init"
-};
-timeline.push(pavlovia_init);
+// Check if we're running on Pavlovia
+const isOnPavlovia = window.location.href.includes('pavlovia.org') ||
+                     window.location.href.includes('run.pavlovia.org');
+
+// Pavlovia init - only add if on Pavlovia AND plugin is available
+if (isOnPavlovia && typeof jsPsychPavlovia !== 'undefined') {
+    const pavlovia_init = {
+        type: jsPsychPavlovia,
+        command: "init"
+    };
+    timeline.push(pavlovia_init);
+    console.log('Pavlovia init added to timeline');
+} else {
+    console.log('Running locally - skipping Pavlovia init');
+}
 
 // Participant info form
 const participant_info = {
@@ -478,12 +487,6 @@ const debrief = {
     }
 };
 
-// Pavlovia finish - MUST be last in timeline (uploads data)
-const pavlovia_finish = {
-    type: jsPsychPavlovia,
-    command: "finish"
-};
-
 // Run experiment - load conditions first
 async function runExperiment() {
     try {
@@ -504,8 +507,15 @@ async function runExperiment() {
         // Add debrief screen (calculated after trials complete)
         timeline.push(debrief);
 
-        // Add Pavlovia finish to upload data
-        timeline.push(pavlovia_finish);
+        // Add Pavlovia finish only if on Pavlovia AND plugin is available
+        if (isOnPavlovia && typeof jsPsychPavlovia !== 'undefined') {
+            const pavlovia_finish = {
+                type: jsPsychPavlovia,
+                command: "finish"
+            };
+            timeline.push(pavlovia_finish);
+            console.log('Pavlovia finish added to timeline');
+        }
 
         // Run experiment
         await jsPsych.run(timeline);
