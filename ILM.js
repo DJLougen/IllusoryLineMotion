@@ -137,6 +137,13 @@ async function loadConditions() {
 
 const timeline = [];
 
+// Pavlovia init - connects to Pavlovia server
+const pavlovia_init = {
+    type: jsPsychPavlovia,
+    command: "init"
+};
+timeline.push(pavlovia_init);
+
 // Participant info form
 const participant_info = {
     type: jsPsychSurveyHtmlForm,
@@ -471,6 +478,13 @@ async function runExperiment() {
 
         // Add debrief screen (calculated after trials complete)
         timeline.push(debrief);
+
+        // Pavlovia finish - saves data to server
+        const pavlovia_finish = {
+            type: jsPsychPavlovia,
+            command: "finish"
+        };
+        timeline.push(pavlovia_finish);
 
         // Run experiment
         await jsPsych.run(timeline);
